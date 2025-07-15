@@ -32,6 +32,7 @@ export const signup = async (req, res) => {
                 email: email,
                 fullName: fullName,
                 password: hashedPassword,
+                message: "User created successfully",
             })
         }
         else {
@@ -43,10 +44,33 @@ export const signup = async (req, res) => {
     }
 }
 
-
 export const login = async (req, res) => {
-    res.status(200).json({ message: "Login endpoint is not implemented yet" });
+    const { email, password } = req.body;
+    try {
+        if (!email || !password) {
+            return res.status(400).json({ message: "Please enter all required fields" });
+        }
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "User doesnt exists please singup first!" });
+        }
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ message: "Wrong Password & Invalid Credentials!" })
+        }
+        createToken(user._id, res);
+        res.status(200).json({
+            id: user._id, email,
+            password: validPassword,
+            fullName: fullName,
+            message: "User Login Successfully!"
+        });
+    } catch (error) {
+        return res.status(500).json({ message: "internal server error0" })
+        console.log("Error in login controller:", error);
+    }
 }
+
 export const logout = async (req, res) => {
     res.status(200).json({ message: "Logout endpoint is not implemented yet" });
 }
