@@ -29,9 +29,9 @@ export const signup = async (req, res) => {
             await newUser.save();
             res.status(201).json({
                 id: newUser._id,
-                email: email,
-                fullName: fullName,
-                password: hashedPassword,
+                email: newUser.email,
+                fullName: newUser.fullName,
+                profilePic: newUser.profilePic,
                 message: "User created successfully",
             })
         }
@@ -60,17 +60,18 @@ export const login = async (req, res) => {
         }
         createToken(user._id, res);
         res.status(200).json({
-            id: user._id, email,
-            password: validPassword,
-            fullName: fullName,
-            message: "User Login Successfully!"
+            id: user._id,
+            email: user.email,
+            fullName: user.fullName,
+            profilePic: user.profilePic,
+            message: "User login successful!",
         });
     } catch (error) {
-        return res.status(500).json({ message: "internal server error0" })
         console.log("Error in login controller:", error);
+        return res.status(500).json({ message: "internal server error0" })
     }
 }
 
 export const logout = async (req, res) => {
-    res.status(200).json({ message: "Logout endpoint is not implemented yet" });
+    console.log("i am logout controller");
 }
