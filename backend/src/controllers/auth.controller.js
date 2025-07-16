@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { createToken } from "../lib/authToken.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -23,10 +24,10 @@ export const signup = async (req, res) => {
             fullName: fullName,
             password: hashedPassword,
         })
+        createToken(newUser._id, res);
+        await newUser.save();
         // for new user token will create here
         if (newUser) {
-            createToken(newUser._id, res);
-            await newUser.save();
             res.status(201).json({
                 id: newUser._id,
                 email: newUser.email,
@@ -73,5 +74,45 @@ export const login = async (req, res) => {
 }
 
 export const logout = async (req, res) => {
-    console.log("i am logout controller");
+    try {
+        res.cookie("jwt", "",
+            {
+                httpOnly: true,
+                sameSite: "None",
+                secure: true,
+                maxAge: 0,
+            }
+        )
+        res.status(200).json({ message: "User Logged out successfullt!" })
+    } catch (error) {
+        console.log("Error come in Logout Controller... ", error);
+        return res.status(500).json({ message: "Internal server error3" })
+    }
+}
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic } = req.body;
+        const userId = req.user.id;
+        if (!profilePic) {
+            return res.status(400).json({ message: "Please provide a profile picture URL" });
+        }
+
+        const result = await cloudinary.uploader.upload(profilePic)
+        const updatedUser = await User.findByIdAndUpdate(userId, { profilePic: result.secure_url }, { new: true }).select("-password");
+        // console.log("Profile updated successfully", updatedUser);
+        res.status(200).json({ updatedUser, message: "Profile updated successfully" });
+    } catch (error) {
+        console.log("Error in updateProfile Contorllers", error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+export const checkAuth = async (req, res) => {
+    try {
+        res.status(200).json({ user: req.user, message: "User is authenticated!" });
+    } catch (error) {
+        console.log("Error in checkAuth controller:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 }
