@@ -1,12 +1,14 @@
 import React from "react";
-import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../context/useAuth";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
-import RightSideSignUp from "./RightSideSignUp";
+// import RightSideSignUp from "../components/RightSideSignUp";
+import AuthImagePattern from "../components/AuthImagePattern"; 
 
 const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,22 +18,23 @@ const Signup = () => {
     password:"",
   })
   const {signup,isSigningUp} = useAuth();
+  const navigate = useNavigate();
+
   const validateForm = () => {
     if (!formData.fullName.trim()) return toast.error("Full name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
     if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
     if (!formData.password) return toast.error("Password is required");
     if (formData.password.length < 6) return toast.error("Password must be at least 6 characters");
-
-    return true;
+        return true;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const success = validateForm();
-
     if (success === true) signup(formData);
+    // console.log(formData)
+    navigate("/login");
   };
 
   return (
@@ -39,7 +42,6 @@ const Signup = () => {
       {/* left side */}
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
-          {/* LOGO */}
           <div className="text-center mb-8">
             <div className="flex flex-col items-center gap-2 group">
               <div
@@ -64,7 +66,7 @@ const Signup = () => {
                 </div>
                 <input
                   type="text"
-                  className={`input input-bordered w-full pl-10`}
+                  className={`input input-bordered w-full pl-10 rounded-xl p-2`}
                   placeholder="John Doe"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
@@ -82,7 +84,7 @@ const Signup = () => {
                 </div>
                 <input
                   type="email"
-                  className={`input input-bordered w-full pl-10`}
+                  className={`input input-bordered w-full pl-10 rounded-xl p-2`}
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -100,7 +102,7 @@ const Signup = () => {
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  className={`input input-bordered w-full pl-10`}
+                  className={`input input-bordered w-full pl-10 rounded-xl p-2`}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -119,7 +121,7 @@ const Signup = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary w-full" disabled={isSigningUp}>
+            <button type="submit" className="btn btn-primary w-full bg-purple-600 p-2 rounded-xl" disabled={isSigningUp}>
               {isSigningUp ? (
                 <>
                   <Loader2 className="size-5 animate-spin" />
@@ -143,7 +145,11 @@ const Signup = () => {
       </div>
 
      {/* Right Side - Live Moving Wallpaper */}
-    <RightSideSignUp/>
+    {/* <RightSideSignUp/> */}
+    <AuthImagePattern
+    title="Join our Community"
+    subtitle="Connect with like-minded individuals and grow together"
+    />
       
     </div>
   );
