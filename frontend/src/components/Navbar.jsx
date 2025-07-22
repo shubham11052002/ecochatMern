@@ -1,57 +1,61 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
-import { LogOut, MessageSquare, Settings, User } from "lucide-react";
+import { FiLogOut, FiUser, FiSettings, FiMessageSquare } from "react-icons/fi";
+import { Tooltip } from "@nextui-org/react";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const { logout, authUser } = useAuth();
 
   return (
-    <header
-      className="bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 
-    backdrop-blur-lg bg-base-100/80"
-    >
-      <div className="container mx-auto px-4 h-16">
-        <div className="flex items-center justify-between h-full">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2.5 hover:opacity-80 transition-all">
-              <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-primary" />
-              </div>
-              <h1 className="text-lg font-bold">Ecochat</h1>
-            </Link>
-          </div>
+    <nav className="fixed top-0 left-0 w-full z-50 bg-[#1e1e2e] border-b border-[#2c2c3b] shadow-md backdrop-blur-md">
+      <div className="max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-white p-2 rounded-md hover:shadow-[0_0_10px_#4c4cff] transition duration-300">
+          <FiMessageSquare size={22} />
+          <span className="text-lg font-semibold tracking-wide">Ecochat</span>
+        </div>
 
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4 absolute right-4">
+          <Tooltip content="Settings" placement="bottom">
             <Link
-              to={"/settings"}
-              className={`
-              btn btn-sm gap-2 transition-colors
-              
-              `}
+              to="/settings"
+              className="p-2 rounded-md text-white hover:shadow-[0_0_10px_#4c4cff] transition duration-300"
             >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
+              <FiSettings size={22} />
             </Link>
+          </Tooltip>
 
-            {authUser && (
-              <>
-                <Link to={"/profile"} className={`btn btn-sm gap-2`}>
-                  <User className="size-5" />
-                  <span className="hidden sm:inline">Profile</span>
+          {authUser && (
+            <>
+              <Tooltip content="Profile" placement="bottom">
+                <Link
+                  to="/profile"
+                  className="p-2 rounded-md text-white hover:shadow-[0_0_10px_#4c4cff] transition duration-300"
+                >
+                  <FiUser size={22} />
                 </Link>
+              </Tooltip>
 
-                <button className="flex gap-2 items-center" onClick={logout}>
-                  <LogOut className="size-5" />
-                  <span className="hidden sm:inline">Logout</span>
+              <Tooltip content="Logout" placement="bottom">
+                <button
+                  onClick={logout}
+                  className="p-2 rounded-md text-white hover:shadow-[0_0_10px_#ff4c4c] transition duration-300"
+                >
+                  <FiLogOut size={22} />
                 </button>
-              </>
-            )}
-          <ThemeToggle/>
-          </div>
+              </Tooltip>
+            </>
+          )}
+
+<Tooltip content="Theme Toggle" placement="bottom">
+  <div className="p-2 rounded-md hover:shadow-[0_-4px_10px_white,0_4px_10px_black] transition duration-300">
+    <ThemeToggle />
+  </div>
+</Tooltip>
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
+
 export default Navbar;
