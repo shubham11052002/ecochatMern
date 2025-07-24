@@ -1,7 +1,8 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { createToken } from "../lib/authToken.js";
-import { cloudinary } from "../lib/cloudinary.js"
+import { cloudinary } from "../lib/cloudinary.js";
+
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
     try {
@@ -94,7 +95,6 @@ export const updateProfile = async (req, res) => {
         const profilePic = req.files?.profilePic;
         // console.log(profilePic);
         const userId = req.user.id;
-
         if (!profilePic) {
             return res.status(400).json({ message: "Please provide a profile picture" });
         }
@@ -103,7 +103,7 @@ export const updateProfile = async (req, res) => {
         try {
             result = await cloudinary.uploader.upload(req.files.profilePic.tempFilePath);
         } catch (cloudErr) {
-            console.error("❌ Cloudinary upload failed:", cloudErr.message);
+            // console.error("Cloudinary upload failed:", cloudErr.message);
             return res.status(500).json({ message: "Cloudinary upload failed" });
         }
 
@@ -112,16 +112,13 @@ export const updateProfile = async (req, res) => {
             { profilePic: result.secure_url },
             { new: true }
         ).select("-password");
-
         if (!updatedUser) {
             return res.status(404).json({ message: "User not found" });
         }
-
         return res.status(200).json({
             user: updatedUser,
             message: "Profile updated successfully",
         });
-
     } catch (error) {
         console.error("❌ Error in updateProfile:", error.message);
         return res.status(500).json({ message: "Internal Server Error" });

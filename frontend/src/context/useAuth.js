@@ -61,15 +61,29 @@ export const useAuth = create((set) => ({
 
     updateProfile: async (data) => {
         try {
-            set({ isUpdatingProfile: true }); // ✅ this line was missing
-            const res = await axiosInstance.put("/auth/update-profile", data);
+            set({ isUpdatingProfile: true });
+            // console.log("Sending update data:", data);
+            if (data instanceof FormData) {
+                for (let [key, value] of data.entries()) {
+                    console.log(`${key}:`, value);
+                }
+            }
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            };
+            const res = await axiosInstance.put("/auth/update-profile", data, config);           
             set({ authUser: res.data.user });
-            toast.success("Profile updated successfully");
+            toast.success(res.data.message);
+            return res.data.user;
         } catch (error) {
-            console.error("Update Profile Error:", error.message);
+            console.error("Update Profile Error:", error);
+            console.error("Response data:", error.response?.data);
             toast.error(error.response?.data?.message || "Error updating profile");
+            throw error;
         } finally {
-            set({ isUpdatingProfile: false }); // ✅ fix the key here
+            set({ isUpdatingProfile: false });
         }
     },
 }));

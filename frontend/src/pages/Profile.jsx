@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { useAuth } from "../context/useAuth.js";
-import { Camera, Mail, User, Calendar, CheckCircle, Edit3, Shield, Star } from "lucide-react";
+import { Camera, Mail, User, Calendar, CheckCircle, Edit3, Shield, Star, Trash2 } from "lucide-react";
 import {
   Card,
   CardBody,
   Avatar,
   Button,
   Input,
-  Divider,
   Chip,
-  Spinner
+  Spinner,
+  Tooltip
 } from "@nextui-org/react";
 
 const Profile = () => {
@@ -18,18 +19,23 @@ const Profile = () => {
   const [profilePic, setProfilePic] = useState(null);
   const [selectedImg, setSelectedImg] = useState("");
   const [showSaveButton, setShowSaveButton] = useState(false);
-  const user = authUser;
+  const [isProfilePicRemoved, setIsProfilePicRemoved] = useState(
+    localStorage.getItem('profilePicRemoved') === 'true'
+  );
 
   useEffect(() => {
     if (authUser?.user) {
       setLocalUser(authUser.user);
-      if (authUser.user.profilePic?.url) {
-        setSelectedImg(authUser.user.profilePic.url);
-      } else if (authUser.user.profilePic) {
-        setSelectedImg(authUser.user.profilePic);
+      // Only set image if not removed locally
+      if (!isProfilePicRemoved) {
+        if (authUser.user.profilePic?.url) {
+          setSelectedImg(authUser.user.profilePic.url);
+        } else if (authUser.user.profilePic) {
+          setSelectedImg(authUser.user.profilePic);
+        }
       }
     }
-  }, [authUser]);
+  }, [authUser, isProfilePicRemoved]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -37,6 +43,22 @@ const Profile = () => {
       setProfilePic(file);
       setSelectedImg(URL.createObjectURL(file));
       setShowSaveButton(true);
+      setIsProfilePicRemoved(false);
+      localStorage.removeItem('profilePicRemoved');
+    }
+  };
+
+  const handleRemoveImage = () => {
+    try {
+      setSelectedImg("");
+      setProfilePic(null);
+      setShowSaveButton(false);
+      setIsProfilePicRemoved(true);
+      localStorage.setItem('profilePicRemoved', 'true');
+      toast.success("Profile picture removed successfully");
+    } catch (error) {
+      console.error("Error removing profile picture:", error);
+      toast.error("Failed to remove profile picture");
     }
   };
 
@@ -51,6 +73,8 @@ const Profile = () => {
       const updatedUser = await updateProfile(formData);
       if (updatedUser) {
         setLocalUser(prev => ({ ...prev, profilePic: updatedUser.profilePic }));
+        localStorage.removeItem('profilePicRemoved');
+        setIsProfilePicRemoved(false);
       }
     } finally {
       setProfilePic(null);
@@ -72,7 +96,7 @@ const Profile = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="h-fit shadow-2xl hover:shadow-primary/20 transition-all duration-700 border border-divider/30 backdrop-blur-md bg-content1/80 animate-in slide-in-from-left ">
+            <Card className="h-fit shadow-2xl hover:shadow-primary/20 transition-all duration-700 border border-divider/30 backdrop-blur-md bg-content1/80 animate-in slide-in-from-left">
               <CardBody className="p-6">
                 <div className="flex flex-col items-center mb-6">
                   <div className="relative group">
@@ -80,40 +104,63 @@ const Profile = () => {
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     
                     <Avatar
-                      src={selectedImg || localUser?.profilePic || "/avatar.png"}
-                      className="relative w-24 h-24 text-large border-3 border-background shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                      src={isProfilePicRemoved ? "/avatar.png" : (selectedImg || localUser?.profilePic || "/avatar.png")}
+                      className="relative w-40 h-40 text-large border-4 border-background shadow-2xl transition-all duration-500 group-hover:scale-105"
                       isBordered
                     />
+                  </div>
+
+                  <div className="flex gap-4 mt-6">
+                    <Tooltip content="Change photo" placement="top">
+                      <label
+                        htmlFor="avatar-upload"
+                        className={`bg-gradient-to-r from-primary to-secondary p-3 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all ${
+                          isUpdatingProfile ? "opacity-50 pointer-events-none" : "hover:scale-110"
+                        }`}
+                      >
+                        {isUpdatingProfile ? (
+                          <Spinner size="sm" color="white" />
+                        ) : (
+                          <Camera className="w-5 h-5 text-white" />
+                        )}
+                        <input
+                          type="file"
+                          id="avatar-upload"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={isUpdatingProfile}
+                        />
+                      </label>
+                    </Tooltip>
                     
-                    <label
-                      htmlFor="avatar-upload"
-                      className={`absolute -bottom-1 -right-1 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary p-2 rounded-full cursor-pointer transition-all duration-500 shadow-lg hover:shadow-2xl hover:shadow-primary/50 border-2 border-background animate-bounce hover:animate-none ${isUpdatingProfile ? "animate-pulse pointer-events-none" : "hover:scale-125 active:scale-95"}`}
-                    >
-                      {isUpdatingProfile ? (
-                        <Spinner size="sm" color="white" />
-                      ) : (
-                        <Camera className="w-3 h-3 text-white" />
-                      )}
-                      <input
-                        type="file"
-                        id="avatar-upload"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={isUpdatingProfile}
-                      />
-                    </label>
+                    {(selectedImg || (localUser?.profilePic && !isProfilePicRemoved)) ? (
+                      <Tooltip content="Remove photo" placement="top">
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="bg-danger p-3 rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-all hover:scale-110"
+                          disabled={isUpdatingProfile}
+                        >
+                          <Trash2 className="w-5 h-5 text-white" />
+                        </button>
+                      </Tooltip>
+                    ) : null}
                   </div>
 
                   <div className="text-center mt-4 animate-in fade-in duration-700 delay-300">
-                    <h2 className="text-lg font-semibold text-foreground mb-1">
+                    <h2 className="text-xl font-semibold text-foreground mb-1">
                       {localUser?.fullName || "User Name"}
                     </h2>
-                    <p className="text-xs text-default-500">
+                    <p className="text-sm text-default-500">
                       {isUpdatingProfile ? (
-                        <span className="animate-pulse text-primary">Uploading...</span>
+                        <span className="animate-pulse text-primary">Updating...</span>
+                      ) : isProfilePicRemoved ? (
+                        "Profile picture removed"
+                      ) : selectedImg || localUser?.profilePic ? (
+                        "Profile photo added"
                       ) : (
-                        "Click camera to update photo"
+                        "Click buttons below to manage photo"
                       )}
                     </p>
                   </div>
@@ -153,7 +200,7 @@ const Profile = () => {
                       variant="shadow"
                     >
                       {!isUpdatingProfile && <Camera className="w-4 h-4 mr-2" />}
-                      Save Profile Picture
+                      Save Changes
                     </Button>
                   </div>
                 )}
@@ -224,7 +271,7 @@ const Profile = () => {
                         size="sm"
                         className="font-medium group-hover/item:scale-105 transition-transform duration-300"
                       >
-                        {user?.createdAt?.split("T")[0] || "N/A"}
+                        {localUser?.createdAt?.split("T")[0] || "N/A"}
                       </Chip>
                     </div>
 
