@@ -1,25 +1,42 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth.js";
-import { Camera, Mail, User } from "lucide-react";
+import { Camera, Mail, User, Calendar, CheckCircle, Edit3, Shield, Star } from "lucide-react";
+import {
+  Card,
+  CardBody,
+  Avatar,
+  Button,
+  Input,
+  Divider,
+  Chip,
+  Spinner
+} from "@nextui-org/react";
 
 const Profile = () => {
   const { authUser, isUpdatingProfile, updateProfile } = useAuth();
-  const user = authUser?.user;
-
+  const [localUser, setLocalUser] = useState(authUser?.user || {});
   const [profilePic, setProfilePic] = useState(null);
   const [selectedImg, setSelectedImg] = useState("");
+  const [showSaveButton, setShowSaveButton] = useState(false);
+  const user = authUser;
 
   useEffect(() => {
-    if (user?.profilePic?.url) {
-      setSelectedImg(user.profilePic.url);
+    if (authUser?.user) {
+      setLocalUser(authUser.user);
+      if (authUser.user.profilePic?.url) {
+        setSelectedImg(authUser.user.profilePic.url);
+      } else if (authUser.user.profilePic) {
+        setSelectedImg(authUser.user.profilePic);
+      }
     }
-  }, [user]);
+  }, [authUser]);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       setProfilePic(file);
       setSelectedImg(URL.createObjectURL(file));
+      setShowSaveButton(true);
     }
   };
 
@@ -29,101 +46,212 @@ const Profile = () => {
 
     const formData = new FormData();
     formData.append("profilePic", profilePic);
-    await updateProfile(formData);
+    
+    try {
+      const updatedUser = await updateProfile(formData);
+      if (updatedUser) {
+        setLocalUser(prev => ({ ...prev, profilePic: updatedUser.profilePic }));
+      }
+    } finally {
+      setProfilePic(null);
+      setShowSaveButton(false);
+    }
   };
 
   return (
-    <div className="h-screen pt-20">
-      <div className="max-w-2xl mx-auto p-4 py-8">
+    <div className="min-h-screen px-4 bg-gradient-to-br from-background via-default-50/50 to-primary/5 dark:from-background dark:via-default-900/30 dark:to-primary/10">
+      <div className="max-w-5xl mx-auto py-4">
         <form onSubmit={handleSubmit}>
-          <div className="bg-base-300 rounded-xl p-6 space-y-8">
-            <div className="text-center">
-              <h1 className="text-2xl font-semibold">Profile</h1>
-              <p className="mt-2">Your profile information</p>
+          <div className="text-center mb-6">
+            <div className="animate-in slide-in-from-top duration-700">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent mb-1 animate-pulse">
+                Profile Settings
+              </h1>
+              <p className="text-default-600 text-sm">Manage your personal information</p>
             </div>
+          </div>
 
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative">
-                <img
-                  src={selectedImg || authUser.user.profilePic || "/avatar.png"}
-                  alt="Profile"
-                  className="size-32 rounded-full object-cover border-4"
-                />
-                <label
-                  htmlFor="avatar-upload"
-                  className={`
-                    absolute bottom-0 right-0 
-                    bg-base-content hover:scale-105
-                    p-2 rounded-full cursor-pointer 
-                    transition-all duration-200
-                    ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
-                  `}
-                >
-                  <Camera className="w-5 h-5 text-base-200" />
-                  <input
-                    type="file"
-                    id="avatar-upload"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={isUpdatingProfile}
-                  />
-                </label>
-              </div>
-              <p className="text-sm text-zinc-400">
-                {isUpdatingProfile
-                  ? "Uploading..."
-                  : "Click the camera icon to update your photo"}
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="h-fit shadow-2xl hover:shadow-primary/20 transition-all duration-700 border border-divider/30 backdrop-blur-md bg-content1/80 animate-in slide-in-from-left ">
+              <CardBody className="p-6">
+                <div className="flex flex-col items-center mb-6">
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary via-secondary to-primary rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 animate-spin-slow blur-sm"></div>
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/50 to-secondary/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    <Avatar
+                      src={selectedImg || localUser?.profilePic || "/avatar.png"}
+                      className="relative w-24 h-24 text-large border-3 border-background shadow-xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3"
+                      isBordered
+                    />
+                    
+                    <label
+                      htmlFor="avatar-upload"
+                      className={`absolute -bottom-1 -right-1 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary p-2 rounded-full cursor-pointer transition-all duration-500 shadow-lg hover:shadow-2xl hover:shadow-primary/50 border-2 border-background animate-bounce hover:animate-none ${isUpdatingProfile ? "animate-pulse pointer-events-none" : "hover:scale-125 active:scale-95"}`}
+                    >
+                      {isUpdatingProfile ? (
+                        <Spinner size="sm" color="white" />
+                      ) : (
+                        <Camera className="w-3 h-3 text-white" />
+                      )}
+                      <input
+                        type="file"
+                        id="avatar-upload"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isUpdatingProfile}
+                      />
+                    </label>
+                  </div>
+
+                  <div className="text-center mt-4 animate-in fade-in duration-700 delay-300">
+                    <h2 className="text-lg font-semibold text-foreground mb-1">
+                      {localUser?.fullName || "User Name"}
+                    </h2>
+                    <p className="text-xs text-default-500">
+                      {isUpdatingProfile ? (
+                        <span className="animate-pulse text-primary">Uploading...</span>
+                      ) : (
+                        "Click camera to update photo"
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <Card className="bg-gradient-to-br from-success/10 to-success/5 border border-success/20 hover:border-success/40 hover:shadow-lg hover:shadow-success/20 transition-all duration-300 group">
+                    <CardBody className="p-3 text-center">
+                      <div className="p-2 bg-success/20 rounded-full w-fit mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                        <Shield className="w-4 h-4 text-success" />
+                      </div>
+                      <p className="text-xs font-medium text-success">Verified</p>
+                      <p className="text-xs text-default-500">Account</p>
+                    </CardBody>
+                  </Card>
+
+                  <Card className="bg-gradient-to-br from-warning/10 to-warning/5 border border-warning/20 hover:border-warning/40 hover:shadow-lg hover:shadow-warning/20 transition-all duration-300 group">
+                    <CardBody className="p-3 text-center">
+                      <div className="p-2 bg-warning/20 rounded-full w-fit mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
+                        <Star className="w-4 h-4 text-warning" />
+                      </div>
+                      <p className="text-xs font-medium text-warning">Premium</p>
+                      <p className="text-xs text-default-500">Member</p>
+                    </CardBody>
+                  </Card>
+                </div>
+
+                {showSaveButton && (
+                  <div className="animate-in slide-in-from-bottom duration-500">
+                    <Button
+                      type="submit"
+                      color="primary"
+                      size="md"
+                      isLoading={isUpdatingProfile}
+                      loadingText="Updating..."
+                      className="w-full font-medium shadow-xl hover:shadow-2xl hover:shadow-primary/30 transition-all duration-500 hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary"
+                      variant="shadow"
+                    >
+                      {!isUpdatingProfile && <Camera className="w-4 h-4 mr-2" />}
+                      Save Profile Picture
+                    </Button>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+
+            <div className="space-y-4 animate-in slide-in-from-right duration-500 delay-200">
+              <Card className="shadow-xl hover:shadow-2xl hover:shadow-primary/10 transition-all duration-700 border border-divider/30 backdrop-blur-md bg-content1/80 group">
+                <CardBody className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                      <Edit3 className="w-4 h-4 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground">Personal Information</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Input
+                      label="Full Name"
+                      value={localUser?.fullName || "N/A"}
+                      isReadOnly
+                      startContent={<User className="w-4 h-4 text-default-400" />}
+                      variant="bordered"
+                      classNames={{
+                        base: "hover:scale-[1.02] transition-all duration-300",
+                        inputWrapper: "bg-default-50 dark:bg-default-100/50 border-default-200 dark:border-default-700 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300",
+                      }}
+                    />
+                    
+                    <Input
+                      label="Email Address"
+                      value={localUser?.email || "N/A"}
+                      isReadOnly
+                      startContent={<Mail className="w-4 h-4 text-default-400" />}
+                      variant="bordered"
+                      classNames={{
+                        base: "hover:scale-[1.02] transition-all duration-300",
+                        inputWrapper: "bg-default-50 dark:bg-default-100/50 border-default-200 dark:border-default-700 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300",
+                      }}
+                    />
+                  </div>
+                </CardBody>
+              </Card>
+
+              <Card className="shadow-xl hover:shadow-2xl hover:shadow-success/10 transition-all duration-700 border border-divider/30 backdrop-blur-md bg-content1/80 group">
+                <CardBody className="p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="p-2 bg-success/10 rounded-lg group-hover:bg-success/20 group-hover:scale-110 transition-all duration-300">
+                      <CheckCircle className="w-4 h-4 text-success" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground">Account Details</h3>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-default-50 to-default-100/50 dark:from-default-100/20 dark:to-default-200/10 rounded-xl border border-divider/50 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group/item">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg group-hover/item:bg-primary/20 group-hover/item:scale-110 transition-all duration-300">
+                          <Calendar className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Member Since</p>
+                          <p className="text-xs text-default-500">Account creation date</p>
+                        </div>
+                      </div>
+                      <Chip
+                        color="default"
+                        variant="flat"
+                        size="sm"
+                        className="font-medium group-hover/item:scale-105 transition-transform duration-300"
+                      >
+                        {user?.createdAt?.split("T")[0] || "N/A"}
+                      </Chip>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-success/5 to-success/10 rounded-xl border border-success/20 hover:border-success/40 hover:shadow-lg hover:shadow-success/10 transition-all duration-300 group/item">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-success/20 rounded-lg group-hover/item:bg-success/30 group-hover/item:scale-110 transition-all duration-300">
+                          <CheckCircle className="w-4 h-4 text-success" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Account Status</p>
+                          <p className="text-xs text-default-500">Current standing</p>
+                        </div>
+                      </div>
+                      <Chip
+                        color="success"
+                        variant="flat"
+                        size="sm"
+                        className="font-medium group-hover/item:scale-105 transition-transform duration-300"
+                        startContent={<CheckCircle className="w-3 h-3" />}
+                      >
+                        Active
+                      </Chip>
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
             </div>
-
-            <div className="space-y-6">
-              <div className="space-y-1.5">
-                <div className="text-sm text-zinc-400 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Full Name
-                </div>
-                <p className="px-4 py-2.5 bg-base-200 rounded-lg border">
-                  {authUser.user?.fullName || "N/A"}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="text-sm text-zinc-400 flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Email Address
-                </div>
-                <p className="px-4 py-2.5 bg-base-200 rounded-lg border">
-                  {authUser.user?.email || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-base-300 rounded-xl p-6">
-              <h2 className="text-lg font-medium mb-4">Account Information</h2>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between py-2 border-b border-zinc-700">
-                  <span>Member Since</span>
-                  <span>{user?.createdAt?.split("T")[0] || "N/A"}</span>
-                </div>
-                <div className="flex items-center justify-between py-2">
-                  <span>Account Status</span>
-                  <span className="text-green-500">Active</span>
-                </div>
-              </div>
-            </div>
-
-            {selectedImg && (
-              <div className="text-center">
-                <button
-                  type="submit"
-                  disabled={isUpdatingProfile}
-                  className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium disabled:opacity-50"
-                >
-                  {isUpdatingProfile ? "Updating..." : "Save Changes"}
-                </button>
-              </div>
-            )}
           </div>
         </form>
       </div>
