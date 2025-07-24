@@ -17,8 +17,8 @@ const AuthImagePattern = ({ title, subtitle }) => {
 
   function generateNiceColor() {
     const hue = Math.floor(Math.random() * 360);
-    const saturation = 65 + Math.random() * 20; // 65–85%
-    const lightness = 55 + Math.random() * 10;  // 55–65%
+    const saturation = 65 + Math.random() * 20; 
+    const lightness = 55 + Math.random() * 10;
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
 
