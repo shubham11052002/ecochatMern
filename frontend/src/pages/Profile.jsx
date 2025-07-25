@@ -26,16 +26,21 @@ const Profile = () => {
   useEffect(() => {
     if (authUser?.user) {
       setLocalUser(authUser.user);
-      // Only set image if not removed locally
       if (!isProfilePicRemoved) {
-        if (authUser.user.profilePic?.url) {
-          setSelectedImg(authUser.user.profilePic.url);
-        } else if (authUser.user.profilePic) {
-          setSelectedImg(authUser.user.profilePic);
-        }
+        updateProfilePicPreview(authUser.user.profilePic);
       }
     }
   }, [authUser, isProfilePicRemoved]);
+
+  const updateProfilePicPreview = (pic) => {
+    if (pic?.url) {
+      setSelectedImg(pic.url);
+    } else if (pic) {
+      setSelectedImg(pic);
+    } else {
+      setSelectedImg("");
+    }
+  };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -73,6 +78,7 @@ const Profile = () => {
       const updatedUser = await updateProfile(formData);
       if (updatedUser) {
         setLocalUser(prev => ({ ...prev, profilePic: updatedUser.profilePic }));
+        updateProfilePicPreview(updatedUser.profilePic); 
         localStorage.removeItem('profilePicRemoved');
         setIsProfilePicRemoved(false);
       }
@@ -89,9 +95,10 @@ const Profile = () => {
           <div className="text-center mb-6">
             <div className="animate-in slide-in-from-top duration-700">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent mb-1 animate-pulse">
-                Profile Settings
+                MyProfile Settings
               </h1>
-              <p className="text-default-600 text-sm">Manage your personal information</p>
+              <b>              <i className="text-default-600 text-sm">Manage your personal information</i>
+</b>
             </div>
           </div>
 

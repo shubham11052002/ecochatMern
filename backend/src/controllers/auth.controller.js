@@ -47,11 +47,13 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
     const { email, password } = req.body;
+    // console.log("Login request received:", req.body);
     try {
         if (!email || !password) {
             return res.status(400).json({ message: "Please enter all required fields" });
         }
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: email.toLowerCase() });
+        // console.log(user, "User found in login controller");
         if (!user) {
             return res.status(400).json({ message: "User doesnt exists please singup first!" });
         }
@@ -103,7 +105,7 @@ export const updateProfile = async (req, res) => {
         try {
             result = await cloudinary.uploader.upload(req.files.profilePic.tempFilePath);
         } catch (cloudErr) {
-            // console.error("Cloudinary upload failed:", cloudErr.message);
+            // console.error("Cloudinary failed:", cloudErr.message);
             return res.status(500).json({ message: "Cloudinary upload failed" });
         }
 
@@ -124,7 +126,6 @@ export const updateProfile = async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
 
 export const checkAuth = async (req, res) => {
     try {

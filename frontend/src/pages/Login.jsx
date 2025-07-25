@@ -13,6 +13,7 @@ const LoginPage = () => {
     password: "",
   });
   const { login, isLoggingIn } = useAuth();
+  // console.log(formData)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
