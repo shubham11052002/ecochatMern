@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { FiLogOut, FiUser, FiSettings, FiMessageSquare } from "react-icons/fi";
 import { Tooltip } from "@nextui-org/react";
-import ThemeToggle from "./ThemeToggle";
 import { motion } from "framer-motion";
 
 const Navbar = () => {
@@ -65,15 +64,6 @@ const Navbar = () => {
               </Tooltip>
             </>
           )}
-
-          <Tooltip content="Theme Toggle" placement="bottom">
-            <motion.div
-              whileHover={{ rotate: 15, scale: 1.1 }}
-              className="p-2 rounded-md hover:shadow-[0_-4px_10px_white,0_4px_10px_black] transition duration-300"
-            >
-              <ThemeToggle />
-            </motion.div>
-          </Tooltip>
         </div>
       </div>
     </motion.nav>
