@@ -1,10 +1,23 @@
-import React from "react";
+import ChatContainer from "../components/ChatContainer";
+import NoChatSelected from "../components/NoChatSelected";
+import {Sidebar} from "../components/Sidebar";
+import { useChatStore } from "../context/useChatStore";
 
 const HomePage = () => {
-  return <div>HomePage
-    Lorem, ipsum dolor sit amet consectetur adipisicing elit. At eum animi magnam assumenda eligendi illo nihil libero quisquam, dolore, voluptates error ratione? Numquam eum voluptates unde laboriosam enim quaerat quidem?
-    Autem mollitia nesciunt nemo voluptatibus fuga placeat saepe ab iste commodi quia nisi labore alias possimus illo reiciendis deleniti quaerat assumenda recusandae accusantium eum, deserunt eveniet dignissimos debitis repellendus? Esse.
-  </div>;
-};
+  const { selectedUser } = useChatStore();
 
+  return (
+    <div className="h-screen bg-base-200">
+      <div className="flex items-center justify-center pt-20 px-4">
+        <div className="bg-base-100 rounded-lg shadow-cl w-full max-w-6xl h-[calc(100vh-8rem)]">
+          <div className="flex h-full rounded-lg overflow-hidden">
+            <Sidebar />
+
+            {!selectedUser ? <NoChatSelected /> : <ChatContainer />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 export default HomePage;

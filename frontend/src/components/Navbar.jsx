@@ -23,9 +23,9 @@ const Navbar = () => {
             size={22}
             className="transition duration-300 group-hover:text-[#4c4cff]"
           />
-          <span className="text-lg font-semibold tracking-wide transition-all duration-300 group-hover:text-[#4c4cff]">
-            Ecochat
-          </span>
+          <Link to="/"><span className="text-lg font-semibold tracking-wide transition-all duration-300 group-hover:text-[#4c4cff]">
+            EcoChat
+          </span></Link>
         </motion.div>
 
         <div className="flex items-center gap-4 absolute right-4">
