@@ -14,21 +14,23 @@ export const getUserOnSiderbar = async (req, res) => {
     }
 }
 export const getMessages = async (req, res) => {
-    try {
-        const { id: userToChatId } = req.params;
-        const myId = req.user._id;
-        const message = await Message.find({
-            $or: [
-                { myId: myId, receiverId: userToChatId },
-                { myId: userToChatId, receiverId: myId }
-            ]
-        })
-        return res.status(200).json({ message });
-    } catch (error) {
-        console.error("Error fetching messages:", error.message);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user._id;
+
+    const messages = await Message.find({
+      $or: [
+        { senderId: myId, receiverId: userToChatId },
+        { senderId: userToChatId, receiverId: myId },
+      ],
+    }).sort({ createdAt: 1 });
+
+    return res.status(200).json({ message: messages });
+  } catch (error) {
+    console.error("Error fetching messages:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 export const sendMessage = async (req, res) => {
     try {
         const { text, image } = req.body;
